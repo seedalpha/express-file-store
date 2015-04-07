@@ -1,0 +1,48 @@
+#!/usr/bin/env node
+
+var argv       = require('minimist')(process.argv.slice(2));
+var FileStore  = require('..');
+var express    = require('express');
+
+if (argv._[0] === 'help' || argv._.length === 0) {
+  console.log('Usage: efs command [-p port:8080] [params]');
+  console.log('Commands:');
+  console.log('  fs [-f path to folder:pwd]');
+  console.log('  gridfs [-u mongodb url:mongodb://localhost:27017]');
+  console.log('  s3 [-b bucket, -k aws key, -s aws secret, -r aws region]');
+}
+
+var port = argv.p || 8080;
+var cmd = argv._.shift();
+var fileStore;
+
+var backends = {
+  fs: function() {
+    var folder = argv.f || process.cwd();
+    fileStore = FileStore('fs', folder);
+  },
+  gridfs: function() {
+    var url = argv.u || 'mongodb://localhost:27017';
+    fileStore = FileStore('gridfs', url);
+  },
+  s3: function() {
+    fileStore = FileStore('s3', {
+      bucket: argv.b,
+      key: argv.k,
+      secret: argv.s,
+      region: argv.r
+    });
+  }
+}
+
+var init = backends[cmd];
+
+if (!init) {
+  throw new Error('Supported commands are: fs, gridfs, s3');
+}
+
+init();
+
+express().use(fileStore.routes).listen(port, function() {
+  console.log('EFS is listening on port', port);
+});
