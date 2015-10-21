@@ -1,6 +1,6 @@
 {
   "name": "express-file-store",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "express middleware to access/write/remove files (using file path) with various backends",
   "main": "lib/express-file-store/index.js",
   "bin": {
